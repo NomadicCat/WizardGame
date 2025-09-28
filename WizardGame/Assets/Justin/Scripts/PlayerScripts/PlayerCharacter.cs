@@ -22,6 +22,8 @@ public struct CharacterState
     public Stance Stance;
 
     public Vector3 Velocity;
+
+    public Vector3 Acceleration;
 }
 
 public struct CharacterInput
@@ -184,6 +186,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
 
     public void UpdateVelocity(ref Vector3 currentVelocity, float deltaTime)
     {
+        _state.Acceleration = Vector3.zero;
         Debug.Log($"Character State - Grounded: {_state.Grounded}, Stance: {_state.Stance}");
         if (motor.GroundingStatus.IsStableOnGround)
         {
@@ -259,12 +262,16 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
 
                 //smooth moving
                 var targetVelocity = groundedMovement * speed;
-                currentVelocity = Vector3.Lerp
+
+                var moveVelocity = Vector3.Lerp
                 (
                     a: currentVelocity,
                     b: targetVelocity,
                     t: 1f - Mathf.Exp(-response * deltaTime)
                 );
+
+                _state.Acceleration = (moveVelocity - currentVelocity) / deltaTime;
+                currentVelocity = moveVelocity;
 
             }
 
@@ -298,10 +305,15 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
                         //target velocity is the player's movement direction, at the current speed
                         var currentSpeed = currentVelocity.magnitude;
                         var targetVelocity = groundedMovement * currentSpeed;
-                        var steerForce = (targetVelocity - currentVelocity) * slideSteerAccelleration * deltaTime;
+                        var steerVelocity = currentVelocity;
+                        var steerForce = (targetVelocity - steerVelocity) * slideSteerAccelleration * deltaTime;
+
                         //steer but dont speed up due to direct input
-                        currentVelocity += steerForce;
-                        currentVelocity = Vector3.ClampMagnitude(currentVelocity, currentSpeed);
+                        steerVelocity += steerForce;
+                        steerVelocity = Vector3.ClampMagnitude(steerVelocity, currentSpeed);
+
+                        _state.Acceleration = (steerVelocity - currentVelocity) / deltaTime;
+                        currentVelocity = steerVelocity;
 
                         /*var currentSpeed = currentVelocity.magnitude;//get the current speed before any steering modifications
                         var currentDirection = currentVelocity.normalized;//get the normalized direction of current velocity
@@ -595,6 +607,8 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
 
 
     public Transform GetCameraTarget() => cameraTarget;
+    public CharacterState GetState() => _state;
+    public CharacterState GetLastState() => _lastState;
 
 
     public void setPosition(Vector3 position, bool killvelocity = true)
@@ -607,6 +621,8 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
 
 
     }
+
+
 
  
 }
