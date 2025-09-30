@@ -24,7 +24,7 @@ public class CameraLean : MonoBehaviour
     }
     public void UpdateLean(float deltaTime,bool sliding,Vector3 acceleration, Vector3 up)
     {
-        Debug.Log(acceleration);
+        //Debug.Log(acceleration);s
         var  planarAcceleration = Vector3.ProjectOnPlane(acceleration, up);
         var damping = planarAcceleration.magnitude > _dampedAcceleration.magnitude
             ? attackDamping
@@ -55,8 +55,8 @@ public class CameraLean : MonoBehaviour
         transform.rotation = Quaternion.AngleAxis(_dampedAcceleration.magnitude * _smoothStrength, leanAxis) * transform.rotation;
 
 
-        Debug.DrawRay(transform.position, acceleration, Color.red);
-        Debug.DrawRay(transform.position, _dampedAcceleration, Color.blue);
+        //Debug.DrawRay(transform.position, acceleration, Color.red);
+        //Debug.DrawRay(transform.position, _dampedAcceleration, Color.blue);
 
     }
 }

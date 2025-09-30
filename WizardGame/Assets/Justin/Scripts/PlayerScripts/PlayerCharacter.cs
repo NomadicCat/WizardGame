@@ -33,6 +33,7 @@ public struct CharacterInput
     public bool Jump;
     public bool JumpSustain;
     public CrouchInput Crouch;
+    public bool Attack;
 
 
 }
@@ -43,6 +44,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
     [SerializeField] private KinematicCharacterMotor motor;
     [SerializeField] private Transform root;
     [SerializeField] private Transform cameraTarget;
+    [SerializeField] private Camera playerCamera;
     [Space]
     [SerializeField] private float walkSpeed = 20f;
     [SerializeField] private float crouchSpeed = 7f;
@@ -73,6 +75,12 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
     [SerializeField] private float standCameraTargetHeight = 0.9f;
     [Range(0f, 1f)]
     [SerializeField] private float crouchCameraTargetHeight = 0.7f;
+    [Space]
+    [Header("FireBall Settings")]
+    [SerializeField] private float attackInterval = 1f;
+    [SerializeField] private float attackKnockbackRadius = 20f;
+    [SerializeField] private float attackKnockbackPower = 20f;
+
 
 
     private CharacterState _state;
@@ -92,6 +100,9 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
     private float _timeSinceJumpRequest;
     private bool _ungroundedDueToJump;
 
+    private bool _requestedAttack;
+    private float _timeSinceLastAttack;
+
 
 
 
@@ -105,6 +116,8 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
         _uncrouchOverLapResults = new Collider[8];
         //_stance = Stance.Stand;
         motor.CharacterController = this;
+        _timeSinceLastAttack = 0;
+
     }
 
 
@@ -145,6 +158,8 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
         {
             _requestedCrouchInAir = false;
         }
+
+        _requestedAttack = _requestedAttack || input.Attack;
 
 
 
@@ -187,7 +202,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
     public void UpdateVelocity(ref Vector3 currentVelocity, float deltaTime)
     {
         _state.Acceleration = Vector3.zero;
-        Debug.Log($"Character State - Grounded: {_state.Grounded}, Stance: {_state.Stance}");
+        //Debug.Log($"Character State - Grounded: {_state.Grounded}, Stance: {_state.Stance}");
         if (motor.GroundingStatus.IsStableOnGround)
         {
             _ungroundedDueToJump = false;
@@ -503,6 +518,33 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             }
         }
 
+        if (_requestedAttack && _timeSinceLastAttack < attackInterval)
+        {
+            _requestedAttack = false;
+            float maxDistance = 100f;
+            RaycastHit hitInfo;
+            Debug.Log("at");
+            //Debug.DrawRay(playerCamera.transform.position, playerCamera.transform.forward, Color.red, 1f);
+            var ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
+            int playerLayer = LayerMask.NameToLayer("Player");
+            int ignorePlayerMask = ~(1 << playerLayer);
+            if (Physics.Raycast(ray, out hitInfo, maxDistance,ignorePlayerMask))
+            {
+                float distance = hitInfo.distance;
+                Debug.Log($"Hit object {hitInfo.collider.name} at distance {distance}");
+                if(distance <= attackKnockbackRadius)
+                {
+                    motor.ForceUnground(time: 0f);
+                    //var currentVerticalSpeed = Vector3.Dot(currentVelocity, motor.CharacterUp);
+                    //var targetVerticalSpeed = Mathf.Max(currentVerticalSpeed, attackKnockbackPower);
+                    //currentVelocity += motor.CharacterUp * (targetVerticalSpeed - currentVerticalSpeed);
+                    var knockbackDirection = (playerCamera.transform.position - hitInfo.point).normalized;
+                    currentVelocity += knockbackDirection * attackKnockbackPower;
+
+                }
+            }
+
+        }
 
     }
 
@@ -621,8 +663,47 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
 
 
     }
+    private void OnGUI()
+    {
+        // Crosshair settings
+        float size = 5f; // diameter in pixels
+        Color color = Color.white;
+
+        // Calculate center position
+        float x = (Screen.width - size) / 2f;
+        float y = (Screen.height - size) / 2f;
+
+        // Save previous GUI color and set new one
+        Color prevColor = GUI.color;
+        GUI.color = color;
+
+        // Draw the dot (as a box, appears as a square dot)
+        GUI.DrawTexture(new Rect(x, y, size, size), Texture2D.whiteTexture);
+
+        // Restore previous GUI color
+        GUI.color = prevColor;
+
+
+        // --- Character State Info ---
+        string stateInfo =
+            $"Grounded: {_state.Grounded}\n" +
+            $"Stance: {_state.Stance}\n" +
+            $"Velocity: {_state.Velocity:F2}\n" +
+            $"Acceleration: {_state.Acceleration:F2}";
+
+        // Set style for state info
+        GUIStyle infoStyle = new GUIStyle(GUI.skin.label)
+        {
+            fontSize = 16,
+            normal = { textColor = Color.white }
+        };
+
+        // Draw state info at top-left
+        GUI.Label(new Rect(10, 10, 400, 80), stateInfo, infoStyle);
+
+
+    }
 
 
 
- 
 }

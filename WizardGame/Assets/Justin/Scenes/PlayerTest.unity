@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 73483519}
   m_Layer: 0
   m_Name: Spring
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -288,7 +288,7 @@ GameObject:
   - component: {fileID: 191690528}
   m_Layer: 0
   m_Name: Lean
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -445,7 +445,7 @@ GameObject:
   - component: {fileID: 626656884}
   m_Layer: 0
   m_Name: Character
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -465,6 +465,7 @@ MonoBehaviour:
   motor: {fileID: 626656886}
   root: {fileID: 1041765787}
   cameraTarget: {fileID: 2078845835}
+  playerCamera: {fileID: 782694319}
   walkSpeed: 20
   crouchSpeed: 7
   walkResponse: 25
@@ -474,10 +475,10 @@ MonoBehaviour:
   jumpSpeed: 20
   coyoteTime: 0.2
   jumpSustainGravity: 1
-  gravity: -90
+  gravity: -60
   slideStartSpeed: 25
   slideEndSpeed: 15
-  slideFriction: 0.8
+  slideFriction: 0.2
   slideSteerAccelleration: 5
   slideGravity: -90
   standHeight: 2
@@ -485,6 +486,9 @@ MonoBehaviour:
   crouchHeightResponse: 15
   standCameraTargetHeight: 0.9
   crouchCameraTargetHeight: 0.7
+  attackInterval: 1
+  attackKnockbackRadius: 20
+  attackKnockbackPower: 100
 --- !u!4 &626656885
 Transform:
   m_ObjectHideFlags: 0
@@ -685,7 +689,7 @@ GameObject:
   - component: {fileID: 782694318}
   m_Layer: 0
   m_Name: Main Camera
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -775,7 +779,7 @@ GameObject:
   - component: {fileID: 1041765787}
   m_Layer: 0
   m_Name: Root
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1396,7 +1400,7 @@ GameObject:
   - component: {fileID: 1511257312}
   m_Layer: 0
   m_Name: Camera
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1703,7 +1707,7 @@ GameObject:
   - component: {fileID: 1886626365}
   m_Layer: 0
   m_Name: Capsule
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1983,7 +1987,7 @@ GameObject:
   - component: {fileID: 2078845835}
   m_Layer: 0
   m_Name: Camera Target
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

@@ -61,7 +61,8 @@ public class Player : MonoBehaviour
             JumpSustain = input.Jump.IsPressed(),
             Crouch = input.Crouch.WasPressedThisFrame()
             ? CrouchInput.Toggle
-            : CrouchInput.None
+            : CrouchInput.None,
+            Attack = input.Attack.WasPressedThisFrame()
         };
 
         playerCharacter.UpdateInput(characterInput);
@@ -102,5 +103,8 @@ public class Player : MonoBehaviour
         playerCharacter.setPosition(position);
     }
 
-    
+
+
+
+
 }
