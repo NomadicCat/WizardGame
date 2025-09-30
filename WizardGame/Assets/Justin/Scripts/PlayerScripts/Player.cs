@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Interactions;
 using UnityEngine.Windows;
 
 public class Player : MonoBehaviour
@@ -12,6 +13,7 @@ public class Player : MonoBehaviour
     [Space]
     [SerializeField] private CameraSpring cameraSpring;
     [SerializeField] private CameraLean cameraLean;
+    [SerializeField] private bool useCrouchToggle = true;
 
 
     private PlayerInputActions _inputActions;
@@ -47,10 +49,8 @@ public class Player : MonoBehaviour
         var cameraInput = new CameraInput { Look = input.Look.ReadValue<Vector2>() };
         playerCamera.UpdateRotation(cameraInput);
 
-        //if (input.Crouch.WasPressedThisFrame())
-        //{
-        //    Debug.Log("croutch");
-        //}
+
+
 
         //get chracterinput and update
         var characterInput = new CharacterInput
@@ -59,9 +59,10 @@ public class Player : MonoBehaviour
             Move = input.Move.ReadValue<Vector2>(),
             Jump = input.Jump.WasPressedThisFrame(),
             JumpSustain = input.Jump.IsPressed(),
-            Crouch = input.Crouch.WasPressedThisFrame()
-            ? CrouchInput.Toggle
-            : CrouchInput.None,
+            Crouch = useCrouchToggle
+                ? (input.Crouch.WasPressedThisFrame() ? CrouchInput.Toggle : CrouchInput.None)
+                : (input.Crouch.IsPressed() ? CrouchInput.Crouch : CrouchInput.UnCrouch),
+            
             Attack = input.Attack.WasPressedThisFrame()
         };
 

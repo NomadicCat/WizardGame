@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using KinematicCharacterController;
 using Unity.VisualScripting;
+using UnityEditor;
 
 
 public enum CrouchInput
 {
-    None, Toggle
+    None, Toggle, Crouch, UnCrouch
 }
 
 public enum Stance
@@ -106,6 +107,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
 
 
 
+
     private Collider[] _uncrouchOverLapResults;
 
 
@@ -146,8 +148,8 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
         {
             CrouchInput.Toggle => !_requestedCrouch,
             CrouchInput.None => _requestedCrouch,
-            //CrouchInput.Crouch => true, for holding
-            //CrouchInput.UnCrouch => false for releasing
+            CrouchInput.Crouch => true, //for holding
+            CrouchInput.UnCrouch => false, // for releasing
            _ => _requestedCrouch
 
         };
@@ -214,45 +216,46 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             ) * _reqestedMovement.magnitude;
 
             //start slideing
+            
+            //var moving = groundedMovement.sqrMagnitude > 0f;
+            var moving = true;
+            var crouching = _state.Stance is Stance.Crouch;
+            var wasStanding = _lastState.Stance is Stance.Stand;
+            var wasInAir = !_lastState.Grounded;
+            if( moving && crouching && (wasStanding || wasInAir))
             {
-                var moving = groundedMovement.sqrMagnitude > 0f;
-                var crouching = _state.Stance is Stance.Crouch;
-                var wasStanding = _lastState.Stance is Stance.Stand;
-                var wasInAir = !_lastState.Grounded;
-                if( moving && crouching && (wasStanding || wasInAir))
+
+                //Debug.DrawRay(transform.position, currentVelocity, Color.red, 5f);
+                //Debug.DrawRay(transform.position, _lastState.Velocity, Color.green, 5f);
+                _state.Stance = Stance.Slide;
+                //when landing on stable ground the character motor projects the velocity onto a flat plane
+                //see: kinematicCharacterMotor.HandleVelocityProjection()
+                //in this case we wamt the player to slide
+                //reproject the last frame (falling) velocity onto the ground normal to slide
+                if (wasInAir)
                 {
-
-                    //Debug.DrawRay(transform.position, currentVelocity, Color.red, 5f);
-                    //Debug.DrawRay(transform.position, _lastState.Velocity, Color.green, 5f);
-                    _state.Stance = Stance.Slide;
-                    //when landing on stable ground the character motor projects the velocity onto a flat plane
-                    //see: kinematicCharacterMotor.HandleVelocityProjection()
-                    //in this case we wamt the player to slide
-                    //reproject the last frame (falling) velocity onto the ground normal to slide
-                    if (wasInAir)
-                    {
-                        currentVelocity = Vector3.ProjectOnPlane
-                            (
-                                vector: _lastState.Velocity,
-                                planeNormal: motor.GroundingStatus.GroundNormal
-                            );
-
-                    }
-                    var effectiveSlideStartSpeed = slideStartSpeed;
-                    if(!_lastState.Grounded && !_requestedCrouchInAir)
-                    {
-                        effectiveSlideStartSpeed = 0f;
-                        _requestedCrouchInAir = false;
-                    }
-                    var slideSpeed = Mathf.Max(effectiveSlideStartSpeed, currentVelocity.magnitude);
-                    currentVelocity = motor.GetDirectionTangentToSurface
+                    currentVelocity = Vector3.ProjectOnPlane
                         (
-                        direction: currentVelocity,
-                        surfaceNormal: motor.GroundingStatus.GroundNormal
-                        ) * slideSpeed;
+                            vector: _lastState.Velocity,
+                            planeNormal: motor.GroundingStatus.GroundNormal
+                        );
 
-                    //Debug.DrawRay(transform.position, currentVelocity, Color.black, 5f);
                 }
+                var effectiveSlideStartSpeed = slideStartSpeed;
+                if(!_lastState.Grounded && !_requestedCrouchInAir)
+                {
+                    effectiveSlideStartSpeed = 0f;
+                    _requestedCrouchInAir = false;
+                }
+                var slideSpeed = Mathf.Max(effectiveSlideStartSpeed, currentVelocity.magnitude);
+                currentVelocity = motor.GetDirectionTangentToSurface
+                    (
+                    direction: currentVelocity,
+                    surfaceNormal: motor.GroundingStatus.GroundNormal
+                    ) * slideSpeed;
+
+                //Debug.DrawRay(transform.position, currentVelocity, Color.black, 5f);
+                
 
             }
 
@@ -339,50 +342,8 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
 
 
 
-                    // Inside the "continue sliding" branch, after you know you're grounded
-                    {
-                        //// Frame-rate independent friction
-                        //float frictionDecay = Mathf.Exp(-slideFriction * deltaTime);
-                        //currentVelocity *= frictionDecay;
 
-                        //// Acceleration along slope (use a positive accel value)
-                        //Vector3 groundNormal = motor.GroundingStatus.GroundNormal;
-                        //Vector3 downslopeDir = Vector3.ProjectOnPlane(-motor.CharacterUp, groundNormal);
-                        //if (downslopeDir.sqrMagnitude > 1e-6f)
-                        //{
-                        //    downslopeDir.Normalize();
-                        //    // slideGravity should be a positive acceleration magnitude
-                        //    float slideAccel = Mathf.Abs(slideGravity);
-                        //    currentVelocity += downslopeDir * slideAccel * deltaTime;
-                        //}
-
-                        //// Steering without changing speed
-                        //if (groundedMovement.sqrMagnitude > 1e-6f && currentVelocity.sqrMagnitude > 1e-6f)
-                        //{
-                        //    float currentSpeed = currentVelocity.magnitude;
-                        //    Vector3 currentDir = currentVelocity / currentSpeed;
-                        //    Vector3 targetDir = groundedMovement.normalized;
-
-                        //    float steerT = Mathf.Clamp01(slideSteerAccelleration * deltaTime);
-                        //    Vector3 steeredDir = Vector3.Slerp(currentDir, targetDir, steerT);
-
-                        //    // Keep motion tangent to ground after steering
-                        //    steeredDir = Vector3.ProjectOnPlane(steeredDir, groundNormal).normalized;
-                        //    currentVelocity = steeredDir * currentSpeed;
-                        //}
-
-                        //// Final safety: keep velocity tangent to ground
-                        //if (currentVelocity.sqrMagnitude > 1e-6f)
-                        //{
-                        //    float speed = currentVelocity.magnitude;
-                        //    Vector3 dir = Vector3.ProjectOnPlane(currentVelocity, groundNormal).normalized;
-                        //    currentVelocity = dir * speed;
-                        //}
-
-                        //// Stop condition
-                        //if (currentVelocity.magnitude < slideEndSpeed)
-                        //    _state.Stance = Stance.Crouch;
-                    }
+                    
 
                 }
 
@@ -518,10 +479,11 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             }
         }
 
-        if (_requestedAttack && _timeSinceLastAttack < attackInterval)
+        if (_requestedAttack && _timeSinceLastAttack > attackInterval)
         {
+            _timeSinceLastAttack = 0f;
             _requestedAttack = false;
-            float maxDistance = 100f;
+            float maxDistance = 1000f;
             RaycastHit hitInfo;
             Debug.Log("at");
             //Debug.DrawRay(playerCamera.transform.position, playerCamera.transform.forward, Color.red, 1f);
@@ -544,6 +506,11 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
                 }
             }
 
+        }
+        else
+        {
+            _timeSinceLastAttack += deltaTime;
+            _requestedAttack = false;
         }
 
     }
@@ -688,8 +655,8 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
         string stateInfo =
             $"Grounded: {_state.Grounded}\n" +
             $"Stance: {_state.Stance}\n" +
-            $"Velocity: {_state.Velocity:F2}\n" +
-            $"Acceleration: {_state.Acceleration:F2}";
+            $"Velocity: {_state.Velocity.magnitude:F2}\n" +
+            $"Acceleration: {_state.Acceleration.magnitude:F2}";
 
         // Set style for state info
         GUIStyle infoStyle = new GUIStyle(GUI.skin.label)
