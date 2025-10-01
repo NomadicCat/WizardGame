@@ -79,6 +79,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
     [Space]
     [Header("FireBall Settings")]
     [SerializeField] private float attackInterval = 1f;
+    [SerializeField] private float projectileSpeed = 1f;
     [SerializeField] private float attackKnockbackRadius = 20f;
     [SerializeField] private float attackKnockbackPower = 20f;
 
@@ -203,6 +204,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
 
     public void UpdateVelocity(ref Vector3 currentVelocity, float deltaTime)
     {
+        Debug.Log(deltaTime);
         _state.Acceleration = Vector3.zero;
         //Debug.Log($"Character State - Grounded: {_state.Grounded}, Stance: {_state.Stance}");
         if (motor.GroundingStatus.IsStableOnGround)
@@ -492,16 +494,24 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             int ignorePlayerMask = ~(1 << playerLayer);
             if (Physics.Raycast(ray, out hitInfo, maxDistance,ignorePlayerMask))
             {
-                float distance = hitInfo.distance;
+                float distance = hitInfo.distance; // Distance from camera to hit point
+                float timeToHit = distance / projectileSpeed; // Time = distance / speed
+
                 Debug.Log($"Hit object {hitInfo.collider.name} at distance {distance}");
+                Debug.Log($"Projectile will reach the target in {timeToHit:F2} seconds.");
+
+
+
+
                 if(distance <= attackKnockbackRadius)
                 {
                     motor.ForceUnground(time: 0f);
-                    //var currentVerticalSpeed = Vector3.Dot(currentVelocity, motor.CharacterUp);
-                    //var targetVerticalSpeed = Mathf.Max(currentVerticalSpeed, attackKnockbackPower);
-                    //currentVelocity += motor.CharacterUp * (targetVerticalSpeed - currentVerticalSpeed);
                     var knockbackDirection = (playerCamera.transform.position - hitInfo.point).normalized;
-                    currentVelocity += knockbackDirection * attackKnockbackPower;
+                    //currentVelocity += knockbackDirection * attackKnockbackPower;
+                    // Calculate a scaling factor: closer = more power, farther = less power
+                    float t = Mathf.Clamp01(1f - (distance / attackKnockbackRadius)); // t=1 at distance=0, t=0 at max radius
+                    float scaledPower = attackKnockbackPower * t;
+                    currentVelocity += knockbackDirection * scaledPower;
 
                 }
             }
@@ -670,6 +680,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
 
 
     }
+
 
 
 

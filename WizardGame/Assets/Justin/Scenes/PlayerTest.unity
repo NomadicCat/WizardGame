@@ -812,7 +812,7 @@ Transform:
   m_GameObject: {fileID: 415466828}
   serializedVersion: 2
   m_LocalRotation: {x: 0.39949313, y: -0.48455882, z: 0.5902344, w: 0.5071798}
-  m_LocalPosition: {x: 47.1, y: 7.8, z: 56.1}
+  m_LocalPosition: {x: 51.31, y: 7.33, z: 54.32}
   m_LocalScale: {x: 10.580796, y: 10.864745, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1244,13 +1244,13 @@ MonoBehaviour:
   walkResponse: 25
   crouchResponse: 20
   airSpeed: 15
-  airAcceleration: 100
+  airAcceleration: 70
   jumpSpeed: 25
   coyoteTime: 0.2
   jumpSustainGravity: 1
   gravity: -60
   slideStartSpeed: 1
-  slideEndSpeed: 20
+  slideEndSpeed: 15
   slideFriction: 0.2
   slideSteerAccelleration: 5
   slideGravity: -90
@@ -1259,7 +1259,8 @@ MonoBehaviour:
   crouchHeightResponse: 15
   standCameraTargetHeight: 0.9
   crouchCameraTargetHeight: 0.7
-  attackInterval: 0.5
+  attackInterval: 0.1
+  projectileSpeed: 5
   attackKnockbackRadius: 20
   attackKnockbackPower: 25
 --- !u!4 &626656885
@@ -2199,7 +2200,7 @@ Transform:
   m_GameObject: {fileID: 965166185}
   serializedVersion: 2
   m_LocalRotation: {x: 0.5148467, y: -0.48469877, z: 0.5148467, w: 0.48469877}
-  m_LocalPosition: {x: 78.7, y: 7.8, z: 54.3}
+  m_LocalPosition: {x: 74.69, y: 8.9, z: 54.3}
   m_LocalScale: {x: 10.580796, y: 10.864745, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3611,7 +3612,7 @@ Transform:
   m_GameObject: {fileID: 1650529701}
   serializedVersion: 2
   m_LocalRotation: {x: 0.28575328, y: -0.30250373, z: 0.64696795, w: 0.63895935}
-  m_LocalPosition: {x: 66.4, y: 7.8, z: 66.1}
+  m_LocalPosition: {x: 67.1, y: 8.62, z: 66.1}
   m_LocalScale: {x: 10.580796, y: 10.864745, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
