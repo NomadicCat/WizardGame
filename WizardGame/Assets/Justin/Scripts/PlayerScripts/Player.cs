@@ -63,7 +63,8 @@ public class Player : MonoBehaviour
                 ? (input.Crouch.WasPressedThisFrame() ? CrouchInput.Toggle : CrouchInput.None)
                 : (input.Crouch.IsPressed() ? CrouchInput.Crouch : CrouchInput.UnCrouch),
             
-            Attack = input.Attack.WasPressedThisFrame()
+            //Attack = input.Attack.WasPressedThisFrame()
+            Attack = input.Attack.IsPressed()
         };
 
         playerCharacter.UpdateInput(characterInput);

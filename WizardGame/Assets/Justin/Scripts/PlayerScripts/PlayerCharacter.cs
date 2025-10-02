@@ -518,10 +518,6 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
                 Pnew.ProjectileHitPos = hitInfo.point;
                 Pnew.ProjectileHitDistance = hitInfo.distance;
                 //float distance = hitInfo.distance; // Distance from camera to hit point
-                //float timeToHit = distance / projectileSpeed; // Time = distance / speed
-
-                //Debug.Log($"Hit object {hitInfo.collider.name} at distance {distance}");
-                //Debug.Log($"Projectile will reach the target in {timeToHit:F2} seconds.");
 
 
 
@@ -545,6 +541,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             _timeSinceLastAttack += deltaTime;
             _requestedAttack = false;
         }
+
 
         UpdateProjectiles(deltaTime,ref currentVelocity);
     }
@@ -689,8 +686,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
         string stateInfo =
             $"Grounded: {_state.Grounded}\n" +
             $"Stance: {_state.Stance}\n" +
-            $"Velocity: {_state.Velocity.magnitude:F2}\n" +
-            $"Acceleration: {_state.Acceleration.magnitude:F2}";
+            $"Velocity: {_state.Velocity.magnitude:F2}";
 
         // Set style for state info
         GUIStyle infoStyle = new GUIStyle(GUI.skin.label)
@@ -724,7 +720,13 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
 
             // Move the visual representation
             if (proj.Visual != null)
-                proj.Visual.transform.position = Vector3.Lerp(proj.Visual.transform.position,nextPos, proj.ProjectileSpeed);
+                //proj.Visual.transform.position = Vector3.Lerp(proj.Visual.transform.position,nextPos, proj.ProjectileSpeed);
+                //proj.Visual.transform.position = Vector3.Lerp(proj.Visual.transform.position,nextPos, proj.ProjectileSpeed / deltaTime);
+                //proj.Visual.transform.position = Vector3.MoveTowards(proj.Visual.transform.position, nextPos, proj.ProjectileSpeed);
+             // tweak: larger = snappier
+            proj.Visual.transform.position = Vector3.Lerp(proj.Visual.transform.position, nextPos, 1f - Mathf.Exp(-proj.ProjectileSpeed * deltaTime));
+
+
 
 
             // SphereCast from previous to next position
@@ -732,7 +734,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
 
             if (Physics.SphereCast(prevPos, projectileRadius, proj.ProjectileDirection, out hit, (nextPos - prevPos).magnitude, ignorePlayerMask))
             {
-                //Debug.Log("Projectile sphere hit " + hit.collider.name + " at " + hit.point);
+                Debug.Log("Projectile sphere hit " + hit.collider.name + " at " + hit.point);
                 Collider[] hits = Physics.OverlapSphere(proj.ProjectilePos, projectileRadius,ignorePlayerMask);
                 foreach (var hitCollider in hits)
                 {
