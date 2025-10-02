@@ -1,9 +1,6 @@
-using System.Collections;
+using KinematicCharacterController;
 using System.Collections.Generic;
 using UnityEngine;
-using KinematicCharacterController;
-using Unity.VisualScripting;
-using UnityEditor;
 
 
 public enum CrouchInput
@@ -38,6 +35,21 @@ public struct CharacterInput
 
 
 }
+
+public struct ProjectileState
+{
+    public float ProjectileSpeed;
+    public Vector3 ProjectilePos;
+    //public Vector3 PrevProjectilePos;
+    public Vector3 ProjectileDirection;
+    public Vector3 ProjectileHitPos;
+    public float ProjectileHitDistance;
+    public float ProjectileDuration;
+    public GameObject Visual;
+
+}
+
+
 
 
 public class PlayerCharacter : MonoBehaviour, ICharacterController
@@ -78,8 +90,11 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
     [SerializeField] private float crouchCameraTargetHeight = 0.7f;
     [Space]
     [Header("FireBall Settings")]
+    [SerializeField] private GameObject FIREBALL;
     [SerializeField] private float attackInterval = 1f;
-    [SerializeField] private float projectileSpeed = 1f;
+    [SerializeField] private float projectileSpeed = 5f;
+    [SerializeField] private float projectileDuration = 5f;
+    [SerializeField] private float projectileRadius = 0.5f;
     [SerializeField] private float attackKnockbackRadius = 20f;
     [SerializeField] private float attackKnockbackPower = 20f;
 
@@ -105,7 +120,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
     private bool _requestedAttack;
     private float _timeSinceLastAttack;
 
-
+    private List<ProjectileState> ActiveProjectiles = new();
 
 
 
@@ -204,7 +219,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
 
     public void UpdateVelocity(ref Vector3 currentVelocity, float deltaTime)
     {
-        Debug.Log(deltaTime);
+        //Debug.Log(deltaTime);
         _state.Acceleration = Vector3.zero;
         //Debug.Log($"Character State - Grounded: {_state.Grounded}, Stance: {_state.Stance}");
         if (motor.GroundingStatus.IsStableOnGround)
@@ -483,37 +498,45 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
 
         if (_requestedAttack && _timeSinceLastAttack > attackInterval)
         {
+            ProjectileState Pnew = new ProjectileState();
+            Pnew.ProjectilePos = playerCamera.transform.position;
+            Pnew.ProjectileSpeed = projectileSpeed;
+            Pnew.ProjectileDuration = projectileDuration;
+            Pnew.ProjectileDirection = playerCamera.transform.forward;
+            Pnew.Visual = Instantiate(FIREBALL, Pnew.ProjectilePos, Quaternion.identity);
+            ActiveProjectiles.Add(Pnew);
             _timeSinceLastAttack = 0f;
             _requestedAttack = false;
             float maxDistance = 1000f;
             RaycastHit hitInfo;
-            Debug.Log("at");
             //Debug.DrawRay(playerCamera.transform.position, playerCamera.transform.forward, Color.red, 1f);
             var ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
             int playerLayer = LayerMask.NameToLayer("Player");
             int ignorePlayerMask = ~(1 << playerLayer);
             if (Physics.Raycast(ray, out hitInfo, maxDistance,ignorePlayerMask))
             {
-                float distance = hitInfo.distance; // Distance from camera to hit point
-                float timeToHit = distance / projectileSpeed; // Time = distance / speed
+                Pnew.ProjectileHitPos = hitInfo.point;
+                Pnew.ProjectileHitDistance = hitInfo.distance;
+                //float distance = hitInfo.distance; // Distance from camera to hit point
+                //float timeToHit = distance / projectileSpeed; // Time = distance / speed
 
-                Debug.Log($"Hit object {hitInfo.collider.name} at distance {distance}");
-                Debug.Log($"Projectile will reach the target in {timeToHit:F2} seconds.");
+                //Debug.Log($"Hit object {hitInfo.collider.name} at distance {distance}");
+                //Debug.Log($"Projectile will reach the target in {timeToHit:F2} seconds.");
 
 
 
 
-                if(distance <= attackKnockbackRadius)
-                {
-                    motor.ForceUnground(time: 0f);
-                    var knockbackDirection = (playerCamera.transform.position - hitInfo.point).normalized;
-                    //currentVelocity += knockbackDirection * attackKnockbackPower;
-                    // Calculate a scaling factor: closer = more power, farther = less power
-                    float t = Mathf.Clamp01(1f - (distance / attackKnockbackRadius)); // t=1 at distance=0, t=0 at max radius
-                    float scaledPower = attackKnockbackPower * t;
-                    currentVelocity += knockbackDirection * scaledPower;
+                //if(distance <= attackKnockbackRadius)
+                //{
+                //    motor.ForceUnground(time: 0f);
+                //    var knockbackDirection = (playerCamera.transform.position - hitInfo.point).normalized;
+                //    //currentVelocity += knockbackDirection * attackKnockbackPower;
+                //    // Calculate a scaling factor: closer = more power, farther = less power
+                //    float t = Mathf.Clamp01(1f - (distance / attackKnockbackRadius)); // t=1 at distance=0, t=0 at max radius
+                //    float scaledPower = attackKnockbackPower * t;
+                //    currentVelocity += knockbackDirection * scaledPower;
 
-                }
+                //}
             }
 
         }
@@ -523,6 +546,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             _requestedAttack = false;
         }
 
+        UpdateProjectiles(deltaTime,ref currentVelocity);
     }
 
 
@@ -678,10 +702,82 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
         // Draw state info at top-left
         GUI.Label(new Rect(10, 10, 400, 80), stateInfo, infoStyle);
 
+        foreach (var proj in ActiveProjectiles)
+        {
+            Debug.DrawLine(proj.ProjectilePos, proj.ProjectilePos + Vector3.up * 0.2f, Color.red, 0.1f);
+        }
+
 
     }
 
 
+    private void UpdateProjectiles(float deltaTime, ref Vector3 currentVelocity)
+    {
+        int playerLayer = LayerMask.NameToLayer("Player");
+        int ignorePlayerMask = ~(1 << playerLayer);
+
+        for (int i = ActiveProjectiles.Count - 1; i >= 0; i--)
+        {
+            var proj = ActiveProjectiles[i];
+            Vector3 prevPos = proj.ProjectilePos;
+            Vector3 nextPos = proj.ProjectilePos + proj.ProjectileDirection * proj.ProjectileSpeed * deltaTime;
+
+            // Move the visual representation
+            if (proj.Visual != null)
+                proj.Visual.transform.position = Vector3.Lerp(proj.Visual.transform.position,nextPos, proj.ProjectileSpeed);
 
 
-}
+            // SphereCast from previous to next position
+            RaycastHit hit;
+
+            if (Physics.SphereCast(prevPos, projectileRadius, proj.ProjectileDirection, out hit, (nextPos - prevPos).magnitude, ignorePlayerMask))
+            {
+                //Debug.Log("Projectile sphere hit " + hit.collider.name + " at " + hit.point);
+                Collider[] hits = Physics.OverlapSphere(proj.ProjectilePos, projectileRadius,ignorePlayerMask);
+                foreach (var hitCollider in hits)
+                {
+                    Debug.Log("Projectile overlaps " + hitCollider.name);
+                    // Handle area effect (damage, etc.)
+                }
+
+                float distance = Vector3.Distance(playerCamera.transform.position, hit.point);
+                if (distance <= attackKnockbackRadius)
+                {
+                    motor.ForceUnground(time: 0f);
+                    var knockbackDirection = (playerCamera.transform.position - hit.point).normalized;
+                    //currentVelocity += knockbackDirection * attackKnockbackPower;
+                    // Calculate a scaling factor: closer = more power, farther = less power
+                    float t = Mathf.Clamp01(1f - (distance / attackKnockbackRadius)); // t=1 at distance=0, t=0 at max radius
+                    float scaledPower = attackKnockbackPower * t;
+                    currentVelocity += knockbackDirection * scaledPower;
+
+                }
+
+                if (proj.Visual != null)
+                    Destroy(proj.Visual);
+
+                ActiveProjectiles.RemoveAt(i);
+                continue;
+            }
+
+            // Move projectile forward
+            proj.ProjectilePos = nextPos;
+            proj.ProjectileDuration -= deltaTime;
+
+            if (proj.ProjectileDuration <= 0f)
+            {
+                if (proj.Visual != null)
+                    Destroy(proj.Visual);
+
+                ActiveProjectiles.RemoveAt(i);
+                continue;
+            }
+            else
+            {
+                ActiveProjectiles[i] = proj;
+            }
+        }
+
+    }
+
+ }
