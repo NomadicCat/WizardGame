@@ -499,7 +499,9 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
         if (_requestedAttack && _timeSinceLastAttack > attackInterval)
         {
             ProjectileState Pnew = new ProjectileState();
-            Pnew.ProjectilePos = playerCamera.transform.position;
+            // Spawn projectile slightly forward from camera to avoid wall overlap
+            float spawnOffset = projectileRadius * 2f;
+            Pnew.ProjectilePos = playerCamera.transform.position + playerCamera.transform.forward * spawnOffset;
             Pnew.ProjectileSpeed = projectileSpeed;
             Pnew.ProjectileDuration = projectileDuration;
             Pnew.ProjectileDirection = playerCamera.transform.forward;
@@ -729,10 +731,37 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
 
 
 
+
+            // Check if we're starting inside a collider
+            Collider[] overlaps = Physics.OverlapSphere(prevPos, projectileRadius, ignorePlayerMask);
+            if (overlaps.Length > 0)
+            {
+                // We're overlapping, treat this as a hit
+                Debug.Log("Projectile started inside " + overlaps[0].name);
+
+                float distance = Vector3.Distance(playerCamera.transform.position, prevPos);
+                if (distance <= attackKnockbackRadius)
+                {
+                    motor.ForceUnground(time: 0f);
+                    var knockbackDirection = (playerCamera.transform.position - prevPos).normalized;
+                    float t = Mathf.Clamp01(1f - (distance / attackKnockbackRadius));
+                    float scaledPower = attackKnockbackPower * t;
+                    currentVelocity += knockbackDirection * scaledPower;
+                }
+
+                if (proj.Visual != null)
+                    Destroy(proj.Visual);
+
+                ActiveProjectiles.RemoveAt(i);
+                continue;
+            }
+
+
+
             // SphereCast from previous to next position
             RaycastHit hit;
-
-            if (Physics.SphereCast(prevPos, projectileRadius, proj.ProjectileDirection, out hit, (nextPos - prevPos).magnitude, ignorePlayerMask))
+            float distanceToNextPos = (nextPos - prevPos).magnitude;
+            if (Physics.SphereCast(prevPos, projectileRadius, proj.ProjectileDirection, out hit, distanceToNextPos, ignorePlayerMask))
             {
                 Debug.Log("Projectile sphere hit " + hit.collider.name + " at " + hit.point);
                 Collider[] hits = Physics.OverlapSphere(proj.ProjectilePos, projectileRadius,ignorePlayerMask);
