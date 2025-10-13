@@ -500,7 +500,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
         {
             ProjectileState Pnew = new ProjectileState();
             // Spawn projectile slightly forward from camera to avoid wall overlap
-            float spawnOffset = projectileRadius * 2f;
+            float spawnOffset = projectileRadius * 1f;
             Pnew.ProjectilePos = playerCamera.transform.position + playerCamera.transform.forward * spawnOffset;
             Pnew.ProjectileSpeed = projectileSpeed;
             Pnew.ProjectileDuration = projectileDuration;
