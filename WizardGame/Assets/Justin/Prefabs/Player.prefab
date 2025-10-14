@@ -301,7 +301,7 @@ MonoBehaviour:
   attackInterval: 0.1
   projectileSpeed: 100
   projectileDuration: 1
-  projectileRadius: 0.5
+  projectileRadius: 0.25
   attackKnockbackRadius: 20
   attackKnockbackPower: 50
 --- !u!1 &3760759753895213583
