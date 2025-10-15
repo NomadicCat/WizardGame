@@ -466,7 +466,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             var canCoyoteJump = _timeSinceUngrounded < coyoteTime && !_ungroundedDueToJump;
             if (grounded || canCoyoteJump)
             {
-                print("jump");
+                //print("jump");
                 _requestedJump = false; //unset jump request
                 _requestedCrouch = false;//request character uncroutch
                 _requestedCrouchInAir = false;
@@ -764,6 +764,10 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             if (Physics.SphereCast(prevPos, projectileRadius, proj.ProjectileDirection, out hit, distanceToNextPos, ignorePlayerMask))
             {
                 Debug.Log("Projectile sphere hit " + hit.collider.name + " at " + hit.point);
+                if (hit.collider.CompareTag("DT"))
+                {
+                    Destroy(hit.collider.gameObject);
+                }
                 Collider[] hits = Physics.OverlapSphere(proj.ProjectilePos, projectileRadius,ignorePlayerMask);
                 foreach (var hitCollider in hits)
                 {
@@ -810,5 +814,31 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
         }
 
     }
+    //cleanup method
+    private void OnDestroy()
+    {
+        // Clean up all active projectiles when the script is destroyed
+        foreach (var proj in ActiveProjectiles)
+        {
+            if (proj.Visual != null)
+            {
+                Destroy(proj.Visual);
+            }
+        }
+        ActiveProjectiles.Clear();
+    }
 
- }
+    private void OnDisable()
+    {
+        // Optionally clean up when disabled
+        foreach (var proj in ActiveProjectiles)
+        {
+            if (proj.Visual != null)
+            {
+                Destroy(proj.Visual);
+            }
+        }
+        ActiveProjectiles.Clear();
+    }
+
+}

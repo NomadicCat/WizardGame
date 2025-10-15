@@ -1,0 +1,56 @@
+#pragma kernel CSMain
+
+// treate a RenderTexture with enableRandomWrite flag and set it with cs.SetTexture
+RWTexture3D<float4> result;
+int resolution;
+
+StructuredBuffer<float3> points;
+int numPoints;
+
+[numthreads(8,8,8)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float3 position = id / float(resolution);
+
+    float3 delta1 = position - points[0];
+    float3 delta2 = position - points[1];
+
+    // the vector to the closest point
+    float3 closestDelta = length(delta1) < length(delta2) ? delta1 : delta2;
+
+    // the vector to the second closest point
+    float3 secondClosestDelta = length(delta1) > length(delta2) ? delta1 : delta2;
+
+    // for each point, if it is closer than closestDelta, update closestDelta and second closestDelta
+    for (int index = 2; index < numPoints; index++)
+    // consider each point as if it were in a neighbouring cell in any direction to make sure the texture wraps seamlessly
+    for (int i = -1; i <= 1; i++)
+    for (int j = -1; j <= 1; j++)
+    for (int k = -1; k <= 1; k++)
+    {
+        float3 p = points[index] + float3(i, j, k);
+
+        float3 difference = position - p;
+
+        // update the second closest point
+        if (length(difference) < length(secondClosestDelta))
+        {
+            secondClosestDelta = difference;
+        }
+
+        // update the closest point
+        if (length(difference) < length(closestDelta))
+        {
+            secondClosestDelta = closestDelta;
+            closestDelta = difference;
+        }
+    }
+
+    // analogous to the distance of this point from the boundary of the closest and second closest points
+    float ratio = length(closestDelta) / length(secondClosestDelta);
+
+    // the direction from the closest point to the second closest point
+    float3 direction = closestDelta - secondClosestDelta;
+
+    result[id.xyz] = float4(normalize(direction), ratio);
+}
