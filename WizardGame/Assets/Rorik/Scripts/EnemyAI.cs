@@ -3,27 +3,27 @@ using UnityEngine.AI;
 
 public class EnemyAI : MonoBehaviour
 {
-    public NavMeshAgent agent;
+    [Serialize Field] private NavMeshAgent agent;
 
-    public Transform player;
+    [Serialize Field] private Transform player;
 
-    public LayerMask whatIsGround, whatIsPlayer;
+    [Serialize Field] private LayerMask whatIsGround, whatIsPlayer;
 
-    public float health;
+    [Serialize Field] private float health;
 
     // Patrolling 
-    public Vector3 walkPoint;
+    [Serialize Field] private Vector3 walkPoint;
     bool waklkPointSet;
-    public float walkPointRange;
+    [Serialize Field] private float walkPointRange;
 
     // Attacking
-    public float timeBetweenAttacks;
+    [Serialize Field] private float timeBetweenAttacks;
     bool alreadyAttacked;
-    public GameObject projectile;
+    [Serialize Field] private GameObject projectile;
 
     // States
-    public float sightRange, attackRange;
-    public bool playerInSightRange, playerInAttackRange;
+    [Serialize Field] private float sightRange, attackRange;
+    [Serialize Field] private bool playerInSightRange, playerInAttackRange;
 
     private void Awake()
     {
