@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Interactions;
+using UnityEngine.SceneManagement;
 using UnityEngine.Windows;
 
 public class Player : MonoBehaviour
@@ -49,7 +50,13 @@ public class Player : MonoBehaviour
         var cameraInput = new CameraInput { Look = input.Look.ReadValue<Vector2>() };
         playerCamera.UpdateRotation(cameraInput);
 
-
+        if (input.Restart.WasPressedThisFrame())
+        {
+            // Get the name of the currently active scene
+            string currentSceneName = SceneManager.GetActiveScene().name;
+            // Load the scene by its name
+            SceneManager.LoadScene(currentSceneName);
+        }
 
 
         //get chracterinput and update

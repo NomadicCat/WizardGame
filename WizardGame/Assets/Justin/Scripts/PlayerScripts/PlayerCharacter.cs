@@ -97,6 +97,10 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
     [SerializeField] private float projectileRadius = 0.5f;
     [SerializeField] private float attackKnockbackRadius = 20f;
     [SerializeField] private float attackKnockbackPower = 20f;
+    [SerializeField] private float explotionRadius = 5f;
+    [Header("Explosion Effect Settings")]
+    [SerializeField] private GameObject explosionSpherePrefab; // Assign a sphere prefab in inspector
+    [SerializeField] private float explosionExpandDuration = 0.3f; // How long the expansion takes
 
 
 
@@ -738,7 +742,9 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             {
                 // We're overlapping, treat this as a hit
                 Debug.Log("Projectile started inside " + overlaps[0].name);
-
+                // Spawn explosion effect
+                SpawnExplosionEffect(prevPos);
+                DestroyTaggedObjectsInRadius(prevPos, explotionRadius);
                 float distance = Vector3.Distance(playerCamera.transform.position, prevPos);
                 if (distance <= attackKnockbackRadius)
                 {
@@ -763,16 +769,20 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             float distanceToNextPos = (nextPos - prevPos).magnitude;
             if (Physics.SphereCast(prevPos, projectileRadius, proj.ProjectileDirection, out hit, distanceToNextPos, ignorePlayerMask))
             {
+                // Spawn explosion effect
+                SpawnExplosionEffect(hit.point);
+                DestroyTaggedObjectsInRadius(prevPos, explotionRadius);
                 //Debug.Log("Projectile sphere hit " + hit.collider.name + " at " + hit.point);
-                if (hit.collider.CompareTag("DT"))
-                {
-                    Destroy(hit.collider.gameObject);
-                }
+                //if (hit.collider.CompareTag("DT"))
+                //{
+                //    Destroy(hit.collider.gameObject);
+                //}
                 Collider[] hits = Physics.OverlapSphere(proj.ProjectilePos, projectileRadius,ignorePlayerMask);
                 foreach (var hitCollider in hits)
                 {
                     Debug.Log("Projectile overlaps " + hitCollider.name);
                     // Handle area effect (damage, etc.)
+                    
                 }
 
                 float distance = Vector3.Distance(playerCamera.transform.position, hit.point);
@@ -813,6 +823,86 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             }
         }
 
+    }
+
+    private void DestroyTaggedObjectsInRadius(Vector3 center, float radius)
+    {
+        int playerLayer = LayerMask.NameToLayer("Player");
+        int ignorePlayerMask = ~(1 << playerLayer);
+
+        Collider[] hitColliders = Physics.OverlapSphere(center, radius, ignorePlayerMask);
+        foreach (var hitCollider in hitColliders)
+        {
+            if (hitCollider.CompareTag("DT"))
+            {
+                Debug.Log("Destroying DT object: " + hitCollider.name);
+                Destroy(hitCollider.gameObject);
+            }
+        }
+    }
+    private void SpawnExplosionEffect(Vector3 center)
+    {
+        GameObject explosionSphere;
+
+        // Create sphere if no prefab is assigned
+        if (explosionSpherePrefab == null)
+        {
+            explosionSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+
+            // Remove collider so it doesn't interfere with physics
+            Destroy(explosionSphere.GetComponent<Collider>());
+
+            //// Apply material if assigned
+            //if (explosionMaterial != null)
+            //{
+            //    explosionSphere.GetComponent<Renderer>().material = explosionMaterial;
+            //}
+        }
+        else
+        {
+            explosionSphere = Instantiate(explosionSpherePrefab, center, Quaternion.identity);
+        }
+
+        explosionSphere.transform.position = center;
+        explosionSphere.transform.localScale = Vector3.zero;
+
+        // Start the expansion coroutine
+        StartCoroutine(ExpandExplosionSphere(explosionSphere, explotionRadius));
+    }
+
+    private System.Collections.IEnumerator ExpandExplosionSphere(GameObject sphere, float targetRadius)
+    {
+        float elapsedTime = 0f;
+        Vector3 startScale = Vector3.zero;
+        Vector3 targetScale = Vector3.one * (targetRadius * 2f); // Multiply by 2 because sphere diameter = radius * 2
+
+        while (elapsedTime < explosionExpandDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / explosionExpandDuration;
+
+            // Optional: Use easing function for smoother expansion
+            // t = 1f - Mathf.Pow(1f - t, 3f); // Ease out cubic
+
+            sphere.transform.localScale = Vector3.Lerp(startScale, targetScale, t);
+
+            // Optional: Fade out the sphere as it expands
+            var renderer = sphere.GetComponent<Renderer>();
+            if (renderer != null && renderer.material.HasProperty("_Color"))
+            {
+                Color color = renderer.material.color;
+                color.a = 1f - t; // Fade to transparent
+                renderer.material.color = color;
+            }
+
+            yield return null;
+        }
+
+        // Ensure final scale is reached
+        sphere.transform.localScale = targetScale;
+
+        // Destroy the sphere after expansion
+        Destroy(sphere);
     }
     //cleanup method
     private void OnDestroy()
