@@ -289,7 +289,7 @@ MonoBehaviour:
   gravity: -75
   slideStartSpeed: 35
   slideEndSpeed: 15
-  slideFriction: 0.2
+  slideFriction: 0.1
   slideSteerAccelleration: 5
   slideGravity: -90
   standHeight: 2
@@ -306,7 +306,7 @@ MonoBehaviour:
   attackKnockbackPower: 50
   explotionRadius: 5
   explosionSpherePrefab: {fileID: 1427202509455813363, guid: f39c3ead32d5da543b32308eac253ffc, type: 3}
-  explosionExpandDuration: 0.3
+  explosionExpandDuration: 0.2
 --- !u!1 &3760759753895213583
 GameObject:
   m_ObjectHideFlags: 0
