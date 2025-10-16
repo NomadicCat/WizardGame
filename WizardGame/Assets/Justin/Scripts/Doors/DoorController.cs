@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class DoorController : MonoBehaviour
 {
     [SerializeField] private List<Keys> keysList = new List<Keys>();
+    [SerializeField] private List<EnemySpawnTrigger> waves = new List<EnemySpawnTrigger>();
     [SerializeField] private Animator animator;
 
     private int unlock = 0;
@@ -31,10 +33,20 @@ public class DoorController : MonoBehaviour
                 collected += 1;
             }
         }
-        if(collected == keysList.Count)
+
+        bool canUnlock = true;
+        foreach (var key in waves)
+        {
+            if(key.getUnlock() == false)
+            {
+                canUnlock = false;
+            }
+        }
+        if (collected == keysList.Count && canUnlock)
         {
             animator.SetTrigger("Open");
         }
+
 
 
     }

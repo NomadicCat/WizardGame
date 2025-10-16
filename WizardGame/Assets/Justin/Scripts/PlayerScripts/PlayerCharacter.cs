@@ -763,7 +763,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             float distanceToNextPos = (nextPos - prevPos).magnitude;
             if (Physics.SphereCast(prevPos, projectileRadius, proj.ProjectileDirection, out hit, distanceToNextPos, ignorePlayerMask))
             {
-                Debug.Log("Projectile sphere hit " + hit.collider.name + " at " + hit.point);
+                //Debug.Log("Projectile sphere hit " + hit.collider.name + " at " + hit.point);
                 if (hit.collider.CompareTag("DT"))
                 {
                     Destroy(hit.collider.gameObject);

@@ -7,10 +7,15 @@ using UnityEngine.Rendering;
 public class EnemySpawnTrigger : MonoBehaviour
 {
     private bool active = false;
+    [SerializeField] private bool contributeUnlock = false;
+    [SerializeField] private int contributeOnWave = 0;
+
+    private bool canUnlock = false;
     private int currentWave = 0;
     
     private void Awake()
     {
+        contributeOnWave -= 1;
         for (int i = 0; i < this.gameObject.transform.childCount; i++)
         {
             var Wave = this.gameObject.transform.GetChild(i);
@@ -18,6 +23,11 @@ public class EnemySpawnTrigger : MonoBehaviour
             Wave.gameObject.SetActive(false);
 
         }
+        if (!contributeUnlock)
+        {
+            canUnlock = true;
+        }
+
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -46,14 +56,28 @@ public class EnemySpawnTrigger : MonoBehaviour
 
         if (active && currentWave < this.gameObject.transform.childCount)
         {
-            
+            if (contributeUnlock)
+            {
+                if (currentWave == contributeOnWave)
+                {
+                    Debug.Log("can unlock");
+                    canUnlock = true;
+                    contributeUnlock = false; // stop constant check
+                }
+            }
+
             var Wave = this.gameObject.transform.GetChild(currentWave);
+            //Debug.Log($"currentWave: {currentWave}, contributeOnWave: {contributeOnWave}, WaveChildCount: {Wave.transform.childCount}");
             if (Wave.transform.childCount == 0 )
             {
                 
-                if (currentWave+1 < this.gameObject.transform.childCount)
+                if (currentWave + 1 < this.gameObject.transform.childCount)
                 {
-                    Debug.Log("spawning Next Wave");
+                    
+
+
+
+                        Debug.Log("spawning Next Wave");
                     currentWave += 1;
                     this.gameObject.transform.GetChild(currentWave).gameObject.SetActive(true);
                 }
@@ -64,4 +88,11 @@ public class EnemySpawnTrigger : MonoBehaviour
             }
         }
     }
+
+
+    public bool getUnlock()
+    {
+        return this.canUnlock;
+    }
+
 }
