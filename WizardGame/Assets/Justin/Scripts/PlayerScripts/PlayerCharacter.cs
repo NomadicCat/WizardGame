@@ -97,6 +97,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
     [SerializeField] private float projectileRadius = 0.5f;
     [SerializeField] private float attackKnockbackRadius = 20f;
     [SerializeField] private float attackKnockbackPower = 20f;
+    [SerializeField] private float explotionRadius = 5f;
 
 
 
@@ -738,7 +739,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             {
                 // We're overlapping, treat this as a hit
                 Debug.Log("Projectile started inside " + overlaps[0].name);
-
+                DestroyTaggedObjectsInRadius(prevPos, explotionRadius);
                 float distance = Vector3.Distance(playerCamera.transform.position, prevPos);
                 if (distance <= attackKnockbackRadius)
                 {
@@ -763,16 +764,18 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             float distanceToNextPos = (nextPos - prevPos).magnitude;
             if (Physics.SphereCast(prevPos, projectileRadius, proj.ProjectileDirection, out hit, distanceToNextPos, ignorePlayerMask))
             {
+                DestroyTaggedObjectsInRadius(prevPos, explotionRadius);
                 //Debug.Log("Projectile sphere hit " + hit.collider.name + " at " + hit.point);
-                if (hit.collider.CompareTag("DT"))
-                {
-                    Destroy(hit.collider.gameObject);
-                }
+                //if (hit.collider.CompareTag("DT"))
+                //{
+                //    Destroy(hit.collider.gameObject);
+                //}
                 Collider[] hits = Physics.OverlapSphere(proj.ProjectilePos, projectileRadius,ignorePlayerMask);
                 foreach (var hitCollider in hits)
                 {
                     Debug.Log("Projectile overlaps " + hitCollider.name);
                     // Handle area effect (damage, etc.)
+                    
                 }
 
                 float distance = Vector3.Distance(playerCamera.transform.position, hit.point);
@@ -813,6 +816,22 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             }
         }
 
+    }
+
+    private void DestroyTaggedObjectsInRadius(Vector3 center, float radius)
+    {
+        int playerLayer = LayerMask.NameToLayer("Player");
+        int ignorePlayerMask = ~(1 << playerLayer);
+
+        Collider[] hitColliders = Physics.OverlapSphere(center, radius, ignorePlayerMask);
+        foreach (var hitCollider in hitColliders)
+        {
+            if (hitCollider.CompareTag("DT"))
+            {
+                Debug.Log("Destroying DT object: " + hitCollider.name);
+                Destroy(hitCollider.gameObject);
+            }
+        }
     }
     //cleanup method
     private void OnDestroy()

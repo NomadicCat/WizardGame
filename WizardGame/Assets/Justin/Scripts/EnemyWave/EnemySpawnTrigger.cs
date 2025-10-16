@@ -35,7 +35,7 @@ public class EnemySpawnTrigger : MonoBehaviour
         {
             currentWave = 1;
         }
-        active = true;
+       
         var objectName = other.gameObject.name;
         Debug.Log(objectName);
         if (objectName.CompareTo("Character") == 0)
@@ -79,6 +79,7 @@ public class EnemySpawnTrigger : MonoBehaviour
                 {
 
                     currentWave += 1;
+                    gameObject.SetActive(false);
                 }
             }
             Debug.Log($"currentWave: {currentWave}, contributeOnWave: {contributeOnWave}, WaveChildCount: {Wave.transform.childCount}");
