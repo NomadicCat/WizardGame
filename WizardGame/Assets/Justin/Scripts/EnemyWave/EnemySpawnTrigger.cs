@@ -15,7 +15,7 @@ public class EnemySpawnTrigger : MonoBehaviour
     
     private void Awake()
     {
-        contributeOnWave -= 1;
+        
         for (int i = 0; i < this.gameObject.transform.childCount; i++)
         {
             var Wave = this.gameObject.transform.GetChild(i);
@@ -31,6 +31,10 @@ public class EnemySpawnTrigger : MonoBehaviour
     }
     private void OnTriggerEnter(Collider other)
     {
+        if (currentWave == 0)
+        {
+            currentWave = 1;
+        }
         active = true;
         var objectName = other.gameObject.name;
         Debug.Log(objectName);
@@ -53,9 +57,31 @@ public class EnemySpawnTrigger : MonoBehaviour
     private void Update()
     {
 
+        
 
-        if (active && currentWave < this.gameObject.transform.childCount)
+        if (active && currentWave <= this.gameObject.transform.childCount)
         {
+            
+
+            var Wave = this.gameObject.transform.GetChild(currentWave-1);
+            
+            if (Wave.transform.childCount == 0 )
+            {
+                
+                if (currentWave < this.gameObject.transform.childCount)
+                {
+                    Debug.Log("spawning Next Wave");
+                    this.gameObject.transform.GetChild(currentWave).gameObject.SetActive(true);
+                    currentWave += 1;
+
+                }
+                else
+                {
+
+                    currentWave += 1;
+                }
+            }
+            Debug.Log($"currentWave: {currentWave}, contributeOnWave: {contributeOnWave}, WaveChildCount: {Wave.transform.childCount}");
             if (contributeUnlock)
             {
                 if (currentWave == contributeOnWave)
@@ -63,27 +89,6 @@ public class EnemySpawnTrigger : MonoBehaviour
                     Debug.Log("can unlock");
                     canUnlock = true;
                     contributeUnlock = false; // stop constant check
-                }
-            }
-
-            var Wave = this.gameObject.transform.GetChild(currentWave);
-            //Debug.Log($"currentWave: {currentWave}, contributeOnWave: {contributeOnWave}, WaveChildCount: {Wave.transform.childCount}");
-            if (Wave.transform.childCount == 0 )
-            {
-                
-                if (currentWave + 1 < this.gameObject.transform.childCount)
-                {
-                    
-
-
-
-                        Debug.Log("spawning Next Wave");
-                    currentWave += 1;
-                    this.gameObject.transform.GetChild(currentWave).gameObject.SetActive(true);
-                }
-                else
-                {
-                    enabled = false;
                 }
             }
         }

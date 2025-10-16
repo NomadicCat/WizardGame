@@ -11,6 +11,7 @@ public class Keys : MonoBehaviour
         if (other.CompareTag("Player"))
         {
            collected = true;
+            gameObject.SetActive(false) ;
         }
     }
 
