@@ -6,6 +6,7 @@ TagManager:
   tags:
   - DT
   - Enemy
+  - Danger
   layers:
   - Default
   - TransparentFX

@@ -3,32 +3,45 @@ using UnityEngine.AI;
 
 public class EnemyAI : MonoBehaviour
 {
-    [Serialize Field] private NavMeshAgent agent;
+    [SerializeField] private NavMeshAgent agent;
 
-    [Serialize Field] private Transform player;
+    [SerializeField] private Transform player;
 
-    [Serialize Field] private LayerMask whatIsGround, whatIsPlayer;
+    [SerializeField] private LayerMask whatIsGround, whatIsPlayer;
 
-    [Serialize Field] private float health;
+    [SerializeField] private float health;
 
     // Patrolling 
-    [Serialize Field] private Vector3 walkPoint;
+    [SerializeField] private Vector3 walkPoint;
     bool waklkPointSet;
-    [Serialize Field] private float walkPointRange;
+    [SerializeField] private float walkPointRange;
 
     // Attacking
-    [Serialize Field] private float timeBetweenAttacks;
+    [SerializeField] private float timeBetweenAttacks;
     bool alreadyAttacked;
-    [Serialize Field] private GameObject projectile;
+    [SerializeField] private GameObject projectile;
 
     // States
-    [Serialize Field] private float sightRange, attackRange;
-    [Serialize Field] private bool playerInSightRange, playerInAttackRange;
+    [SerializeField] private float sightRange, attackRange;
+    [SerializeField] private bool playerInSightRange, playerInAttackRange;
 
     private void Awake()
     {
         player = GameObject.Find("Player").transform;
         agent = GetComponent<NavMeshAgent>();
+        if (agent == null)
+        {
+            agent = gameObject.AddComponent<NavMeshAgent>();
+        }
+        agent.updateRotation = true;
+        agent.updateUpAxis = true;
+
+        // If a Rigidbody exists, make it kinematic so it doesn't fight the agent
+        var existingRb = GetComponent<Rigidbody>();
+        if (existingRb != null)
+        {
+            existingRb.isKinematic = true;
+        }
     }
 
     private void Update()
@@ -60,36 +73,70 @@ public class EnemyAI : MonoBehaviour
         float randomZ = Random.Range(-walkPointRange, walkPointRange);
         float randomX = Random.Range(-walkPointRange, walkPointRange);
         walkPoint = new Vector3(transform.position.x + randomX, transform.position.y, transform.position.z + randomZ);
-        if (Physics.Raycast(walkPoint, -transform.up, 2f, whatIsGround))
-        {
-            waklkPointSet = true;
+        // if (Physics.Raycast(walkPoint, -transform.up, 2f, whatIsGround))
+        // {
+        //     waklkPointSet = true;
+        // }
+
+        // Replace the Physics.Raycast ground check in SearchWalkPoint with:
+    if (UnityEngine.AI.NavMesh.SamplePosition(walkPoint, out var hit, 2f, NavMesh.AllAreas)) {
+        walkPoint = hit.position; // snap to nearest navmesh point
+        waklkPointSet = true;
         }
     }
 
     private void ChasePlayer()
     {
+        agent.isStopped = false;
         agent.SetDestination(player.position);
     }
 
     private void AttackPlayer()
     {
-        // Make sure enemy doesn't move
-        agent.SetDestination(transform.position);
+        // Stop movement while attacking
+        agent.isStopped = true;
 
-        transform.LookAt(player);
+        var look = player.position - transform.position;
+        look.y = 0f;
+        if (look.sqrMagnitude > 0.0001f)
+        {
+            var targetRot = Quaternion.LookRotation(look, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 12f * Time.deltaTime);
+        }
 
         if (!alreadyAttacked)
         {
             // Attack code here
             Debug.Log("Attacking player...");
-            Rigidbody rb = Instantiate(projectile, transform.position, Quaternion.identity).GetComponent<Rigidbody>();
-            rb.AddForce(transform.forward * 32f, ForceMode.Impulse);
-            rb.AddForce(transform.up * 8f, ForceMode.Impulse);
+            var spawned = Instantiate(projectile, transform.position, Quaternion.identity);
+            var simple = spawned.GetComponent<SimpleProjectile>();
+            if (simple != null)
+            {
+                // launch slightly upward to mimic the old impulse arc
+                var dir = (transform.forward + Vector3.up * 0.25f).normalized;
+                simple.Launch(dir);
+            }
+            else
+            {
+                // Fallback: try physics if prefab still uses Rigidbody
+                var projRb = spawned.GetComponent<Rigidbody>() ?? spawned.GetComponentInChildren<Rigidbody>();
+                if (projRb != null)
+                {
+                    projRb.AddForce(transform.forward * 32f, ForceMode.Impulse);
+                    projRb.AddForce(transform.up * 8f, ForceMode.Impulse);
+                }
+                else
+                {
+                    Debug.LogWarning($"Projectile '{spawned.name}' has no SimpleProjectile or Rigidbody.");
+                }
+            }
 
             alreadyAttacked = true;
             Invoke(nameof(ResetAttack), timeBetweenAttacks);
         }
     }
+
+    // NavMeshAgent handles pathfinding and avoidance.
 
     private void ResetAttack()
     {
