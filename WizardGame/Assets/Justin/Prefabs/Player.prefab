@@ -277,7 +277,7 @@ MonoBehaviour:
   root: {fileID: 1678162088219780939}
   cameraTarget: {fileID: 3339237782811569501}
   playerCamera: {fileID: 7714564643024645890}
-  walkSpeed: 20
+  walkSpeed: 25
   crouchSpeed: 7
   walkResponse: 25
   crouchResponse: 20
@@ -287,7 +287,7 @@ MonoBehaviour:
   coyoteTime: 0.2
   jumpSustainGravity: 1
   gravity: -75
-  slideStartSpeed: 1
+  slideStartSpeed: 35
   slideEndSpeed: 15
   slideFriction: 0.2
   slideSteerAccelleration: 5
@@ -298,12 +298,15 @@ MonoBehaviour:
   standCameraTargetHeight: 0.9
   crouchCameraTargetHeight: 0.7
   FIREBALL: {fileID: 2885157418326935332, guid: 8d307fdaaa8f89541be7a82c0efbefe9, type: 3}
-  attackInterval: 0.1
+  attackInterval: 0.4
   projectileSpeed: 100
   projectileDuration: 1
   projectileRadius: 0.25
   attackKnockbackRadius: 20
   attackKnockbackPower: 50
+  explotionRadius: 5
+  explosionSpherePrefab: {fileID: 1427202509455813363, guid: f39c3ead32d5da543b32308eac253ffc, type: 3}
+  explosionExpandDuration: 0.3
 --- !u!1 &3760759753895213583
 GameObject:
   m_ObjectHideFlags: 0

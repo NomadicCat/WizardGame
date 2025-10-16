@@ -243,7 +243,7 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
             var crouching = _state.Stance is Stance.Crouch;
             var wasStanding = _lastState.Stance is Stance.Stand;
             var wasInAir = !_lastState.Grounded;
-            if( moving && crouching && (wasStanding || wasInAir))
+            if (moving && crouching && (wasStanding || wasInAir) && currentVelocity.magnitude > slideEndSpeed)
             {
 
                 //Debug.DrawRay(transform.position, currentVelocity, Color.red, 5f);
