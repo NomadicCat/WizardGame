@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -34,6 +35,7 @@ public class EnemyAI : MonoBehaviour, IDamageable
         }
         else
         {
+            
             Debug.Log("EnemyAI: Player found at " + player.position);
         }
         
@@ -70,32 +72,32 @@ public class EnemyAI : MonoBehaviour, IDamageable
         playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer);
 
         // Debug information
-        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        if (playerInSightRange)
-        {
-            Debug.Log($"Player in sight range! Distance: {distanceToPlayer:F2}, Sight Range: {sightRange}");
-        }
-        if (playerInAttackRange)
-        {
-            Debug.Log($"Player in attack range! Distance: {distanceToPlayer:F2}, Attack Range: {attackRange}");
-        }
+        // float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+        // if (playerInSightRange)
+        // {
+        //     Debug.Log($"Player in sight range! Distance: {distanceToPlayer:F2}, Sight Range: {sightRange}");
+        // }
+        // if (playerInAttackRange)
+        // {
+        //     Debug.Log($"Player in attack range! Distance: {distanceToPlayer:F2}, Attack Range: {attackRange}");
+        // }
         
-        // Debug current state
-        if (!playerInSightRange && !playerInAttackRange)
-        {
-            Debug.Log("Patrolling - no player detected");
-        }
-        else if (playerInSightRange && !playerInAttackRange)
-        {
-            Debug.Log("Chasing player");
-        }
-        else if (playerInSightRange && playerInAttackRange)
-        {
-            Debug.Log("Attacking player");
-        }
+        // // Debug current state
+        // if (!playerInSightRange && !playerInAttackRange)
+        // {
+        //     Debug.Log("Patrolling - no player detected");
+        // }
+        // else if (playerInSightRange && !playerInAttackRange)
+        // {
+        //     Debug.Log("Chasing player");
+        // }
+        // else if (playerInSightRange && playerInAttackRange)
+        // {
+        //     Debug.Log("Attacking player");
+        // }
 
-        if (!playerInSightRange && !playerInAttackRange) Patroling();
-        if (playerInSightRange && !playerInAttackRange) ChasePlayer();
+        // if (!playerInSightRange && !playerInAttackRange) Patroling();
+        // if (playerInSightRange && !playerInAttackRange) ChasePlayer();
         if (playerInSightRange && playerInAttackRange) AttackPlayer();
     }
 

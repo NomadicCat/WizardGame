@@ -19,7 +19,7 @@ public class EnemySpawnTrigger : MonoBehaviour
         for (int i = 0; i < this.gameObject.transform.childCount; i++)
         {
             var Wave = this.gameObject.transform.GetChild(i);
-            Debug.Log(Wave);
+            // Debug.Log(Wave);
             Wave.gameObject.SetActive(false);
 
         }
@@ -82,7 +82,7 @@ public class EnemySpawnTrigger : MonoBehaviour
                     gameObject.SetActive(false);
                 }
             }
-            Debug.Log($"currentWave: {currentWave}, contributeOnWave: {contributeOnWave}, WaveChildCount: {Wave.transform.childCount}");
+            // Debug.Log($"currentWave: {currentWave}, contributeOnWave: {contributeOnWave}, WaveChildCount: {Wave.transform.childCount}");
             if (contributeUnlock)
             {
                 if (currentWave == contributeOnWave)
