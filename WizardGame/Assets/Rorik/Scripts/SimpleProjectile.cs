@@ -21,6 +21,11 @@ public class SimpleProjectile : MonoBehaviour
     private bool _hasLaunched = false;
     private float _launchDelay = 0.1f; // Small delay to avoid immediate collision
 
+    private void Start()
+    {
+        Debug.Log("SimpleProjectile Start() called - script is working!");
+    }
+
     public void Launch(Vector3 direction, float overrideSpeed = -1f)
     {
         Debug.Log($"Projectile Launch called with direction: {direction}");
@@ -46,16 +51,26 @@ public class SimpleProjectile : MonoBehaviour
 
     private void Update()
     {
-        if (!_hasLaunched) return;
+        if (!_hasLaunched) 
+        {
+            Debug.Log("Projectile Update: Not launched yet");
+            return;
+        }
         
         float dt = Time.deltaTime;
         _timeAlive += dt;
         
         // Small delay to avoid immediate collision with shooter
-        if (_timeAlive < _launchDelay) return;
+        if (_timeAlive < _launchDelay) 
+        {
+            Debug.Log($"Projectile Update: Waiting for launch delay ({_timeAlive:F2}/{_launchDelay})");
+            return;
+        }
         
         Vector3 start = transform.position;
         Vector3 end = start + _direction * speed * dt;
+        
+        Debug.Log($"Projectile moving from {start} to {end}, direction: {_direction}, speed: {speed}");
 
         // Debug the projectile movement
         Debug.DrawRay(start, _direction * speed * dt, Color.red, 0.1f);

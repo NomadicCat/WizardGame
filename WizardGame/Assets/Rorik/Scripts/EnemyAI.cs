@@ -186,9 +186,12 @@ public class EnemyAI : MonoBehaviour, IDamageable
             spawnPosition.y = transform.position.y + 1f; // Slightly above ground
             
             var spawned = Instantiate(projectile, spawnPosition, Quaternion.identity);
+            Debug.Log($"Projectile spawned: {spawned.name} at {spawnPosition}");
+            
             var simple = spawned.GetComponent<SimpleProjectile>();
             if (simple != null)
             {
+                Debug.Log("SimpleProjectile component found!");
                 // Launch projectile towards player with slight upward arc
                 var dir = (shootDirection + Vector3.up * 0.1f).normalized;
                 simple.Launch(dir);
@@ -199,16 +202,18 @@ public class EnemyAI : MonoBehaviour, IDamageable
             }
             else
             {
+                Debug.LogWarning("SimpleProjectile component NOT found! Trying fallback...");
                 // Fallback: try physics if prefab still uses Rigidbody
                 var projRb = spawned.GetComponent<Rigidbody>() ?? spawned.GetComponentInChildren<Rigidbody>();
                 if (projRb != null)
                 {
+                    Debug.Log("Using Rigidbody fallback");
                     projRb.AddForce(shootDirection * 32f, ForceMode.Impulse);
                     projRb.AddForce(Vector3.up * 8f, ForceMode.Impulse);
                 }
                 else
                 {
-                    Debug.LogWarning($"Projectile '{spawned.name}' has no SimpleProjectile or Rigidbody.");
+                    Debug.LogError($"Projectile '{spawned.name}' has no SimpleProjectile or Rigidbody. Check your projectile prefab setup!");
                 }
             }
 
