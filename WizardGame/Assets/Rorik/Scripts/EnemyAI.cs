@@ -1,4 +1,4 @@
-using System.Diagnostics;
+//using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -6,7 +6,9 @@ public class EnemyAI : MonoBehaviour, IDamageable
 {
     [SerializeField] private NavMeshAgent agent;
 
-    [SerializeField] private Transform player;
+    //[SerializeField] 
+    [SerializeField] private GameObject playerObject;
+
 
     [SerializeField] private LayerMask whatIsGround, whatIsPlayer;
 
@@ -26,9 +28,10 @@ public class EnemyAI : MonoBehaviour, IDamageable
     [SerializeField] private float sightRange, attackRange;
     [SerializeField] private bool playerInSightRange, playerInAttackRange;
 
+    private Transform player;
     private void Awake()
     {
-        player = GameObject.Find("Player").transform;
+        
         if (player == null)
         {
             Debug.LogError("EnemyAI: Player GameObject not found! Make sure there's a GameObject named 'Player' in the scene.");
@@ -65,8 +68,9 @@ public class EnemyAI : MonoBehaviour, IDamageable
 
     private void Update()
     {
+        Debug.Log(playerObject.transform.position);
+        player = playerObject.transform;    
         if (player == null) return; // Don't run if player is not found
-        
         // Check if player is in sight range or attack range
         playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer);
         playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer);
@@ -172,32 +176,32 @@ public class EnemyAI : MonoBehaviour, IDamageable
         if (!alreadyAttacked)
         {
             // Attack code here
-            Debug.Log("Attacking player...");
+            //Debug.Log("Attacking player...");
             
             // Calculate fresh direction to player for shooting
-            Vector3 shootDirection = (player.position - transform.position).normalized;
+            var shootDirection = (player.position - transform.position).normalized;
             
             // Debug the direction calculation
-            Debug.Log($"Enemy position: {transform.position}");
-            Debug.Log($"Player position: {player.position}");
-            Debug.Log($"Raw direction vector: {player.position - transform.position}");
+            //Debug.Log($"Enemy position: {transform.position}");
+            //Debug.Log($"Player position: {player.position}");
+            //Debug.Log($"Raw direction vector: {player.position - transform.position}");
             Debug.Log($"Normalized direction: {shootDirection}");
-            
+
             // Spawn projectile at a safe distance from enemy to avoid self-collision
             Vector3 spawnPosition = transform.position + shootDirection * 1.5f; // 1.5 units away from enemy
             spawnPosition.y = transform.position.y + 1f; // Slightly above ground
             
             var spawned = Instantiate(projectile, spawnPosition, Quaternion.identity);
-            Debug.Log($"Projectile spawned: {spawned.name} at {spawnPosition}");
+            //Debug.Log($"Projectile spawned: {spawned.name} at {spawnPosition}");
             
             var simple = spawned.GetComponent<SimpleProjectile>();
             if (simple != null)
             {
-                Debug.Log("SimpleProjectile component found!");
+                //Debug.Log("SimpleProjectile component found!");
                 // Launch projectile towards player with slight upward arc
                 var dir = (shootDirection + Vector3.up * 0.1f).normalized;
                 simple.Launch(dir);
-                Debug.Log($"Shooting at player from {spawnPosition} to {player.position}, direction: {dir}");
+                //Debug.Log($"Shooting at player from {spawnPosition} to {player.position}, direction: {dir}");
                 
                 // Draw debug line to show where we're aiming
                 Debug.DrawLine(spawnPosition, spawnPosition + dir * 10f, Color.green, 2f);

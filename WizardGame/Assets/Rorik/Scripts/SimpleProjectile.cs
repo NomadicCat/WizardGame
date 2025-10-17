@@ -23,12 +23,12 @@ public class SimpleProjectile : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log("SimpleProjectile Start() called - script is working!");
+        //Debug.Log("SimpleProjectile Start() called - script is working!");
     }
 
     public void Launch(Vector3 direction, float overrideSpeed = -1f)
     {
-        Debug.Log($"Projectile Launch called with direction: {direction}");
+        //Debug.Log($"Projectile Launch called with direction: {direction}");
         
         if (direction.sqrMagnitude > 0f)
         {
@@ -40,7 +40,7 @@ public class SimpleProjectile : MonoBehaviour
         }
         _hasLaunched = true;
         
-        Debug.Log($"Projectile launched with final direction: {_direction}, speed: {speed}, position: {transform.position}");
+        //Debug.Log($"Projectile launched with final direction: {_direction}, speed: {speed}, position: {transform.position}");
         
         // Spawn trail effect if assigned
         if (trailEffect != null)
@@ -63,14 +63,14 @@ public class SimpleProjectile : MonoBehaviour
         // Small delay to avoid immediate collision with shooter
         if (_timeAlive < _launchDelay) 
         {
-            Debug.Log($"Projectile Update: Waiting for launch delay ({_timeAlive:F2}/{_launchDelay})");
+            //Debug.Log($"Projectile Update: Waiting for launch delay ({_timeAlive:F2}/{_launchDelay})");
             return;
         }
-        
+
         Vector3 start = transform.position;
         Vector3 end = start + _direction * speed * dt;
         
-        Debug.Log($"Projectile moving from {start} to {end}, direction: {_direction}, speed: {speed}");
+        //Debug.Log($"Projectile moving from {start} to {end}, direction: {_direction}, speed: {speed}");
 
         // Debug the projectile movement
         Debug.DrawRay(start, _direction * speed * dt, Color.red, 0.1f);
@@ -78,7 +78,7 @@ public class SimpleProjectile : MonoBehaviour
 
         if (Physics.SphereCast(start, radius, _direction, out RaycastHit hit, (end - start).magnitude, hitMask, QueryTriggerInteraction.Ignore))
         {
-            Debug.Log($"Projectile hit: {hit.collider.name} at distance {hit.distance}");
+            //Debug.Log($"Projectile hit: {hit.collider.name} at distance {hit.distance}");
             transform.position = hit.point;
             OnHit(hit);
             return;
@@ -128,7 +128,7 @@ public class SimpleProjectile : MonoBehaviour
     
     private void OnLifetimeExpired()
     {
-        Debug.Log("Projectile lifetime expired");
+        //Debug.Log("Projectile lifetime expired");
         Destroy(gameObject);
     }
     
