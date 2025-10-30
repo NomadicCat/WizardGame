@@ -90,7 +90,21 @@ public class Player : MonoBehaviour
                 Teleport(hit.point);
             }
         }
-        #endif
+
+
+        if (Keyboard.current.digit1Key.wasPressedThisFrame)
+        {
+            SceneManager.LoadScene("MapModels");
+        }
+        if (Keyboard.current.digit2Key.wasPressedThisFrame)
+        {
+           
+            SceneManager.LoadScene("Level One");
+        }
+
+
+
+#endif
 
 
 

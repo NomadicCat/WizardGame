@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Justin/Scenes/MapModels.unity
+    guid: 1512439671d76ab4ba31fb5566672dea
   m_configObjects: {}
